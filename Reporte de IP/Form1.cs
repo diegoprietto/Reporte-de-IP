@@ -12,6 +12,10 @@ namespace Reporte_de_IP
 {
     public partial class Form1 : Form
     {
+        MemoriaCompartida _memoriaCompartida;
+        //Código que ejecuta el reloj
+        Hilo _hilo;
+
         public Form1()
         {
             InitializeComponent();
@@ -28,8 +32,28 @@ namespace Reporte_de_IP
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            String msjLog;
+
             //Cargar desde archivo la configuración
             string resultado = Core.cargarConfiguracion();
+
+            //Inicializar Log
+            if (!ControlLog.Inicializar(Core.datosGenerales.rutaArchivoLog, out msjLog))
+            {
+                MessageBox.Show("No se pudo inicializar el control de Log: " + msjLog);
+            }
+
+            //Inicializar memoria compartida
+            _memoriaCompartida = new MemoriaCompartida(Core.datosGenerales.nombreMemoriaCompartida, Core.datosGenerales.nombreMutexCompartido, Core.datosGenerales.capacidadMemoriaCompartida);
+            if (!_memoriaCompartida.IniciarConexion(ref msjLog))
+            {
+                //Error
+                ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING, "Form1.cs", "Form1_Load", "Error al inicializar la memoria compartida: " + msjLog);
+                MessageBox.Show("Error al inicializar la memoria compartida: " + msjLog);
+            }
+
+            //Instanciar Hilo, que contiene los métodos que ejecuta el Reloj
+            _hilo = new Hilo(_memoriaCompartida,lsConectados,lbCant);
 
             //Validar si hay errores
             if (resultado != String.Empty)
@@ -52,12 +76,6 @@ namespace Reporte_de_IP
 
             //Cargar datos en los controles
             cargarControles();
-
-            //Referenciar control web
-            ControlWeb.asignarControlWeb(this.web);
-
-            //Navegar y mostrar
-            ControlWeb.obtenerListaMacs();
         }
 
         //Cargar datos en los controles
@@ -170,26 +188,24 @@ namespace Reporte_de_IP
                 //Almacenar en datos generales
                 almacenarDatosGenerales();
 
-                //Dehabilitar botones de iniciar y de acciones
+                //Deshabilitar botones de iniciar y de acciones
                 btIniciar.Enabled = false;
                 btAcciones.Enabled = false;
                 txFrecuencia.Enabled = false;
 
                 btDetener.Enabled = true;
 
-                //Iniciar hilo
-                procesoBackground.RunWorkerAsync();
+                //Configurar e iniciar Reloj
+                Reloj.Interval = int.Parse(txFrecuencia.Text);
+                Reloj.Start();
             }
         }
 
         private void btDetener_Click(object sender, EventArgs e)
         {
-            //Solicita al hilo que se detenga
-            procesoBackground.CancelAsync();
-        }
+            //Solicita al Reloj que se detenga
+            Reloj.Stop();
 
-        private void procesoBackground_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
             //Habilitar botones de iniciar y de acciones
             btIniciar.Enabled = true;
             btAcciones.Enabled = true;
@@ -199,6 +215,7 @@ namespace Reporte_de_IP
         }
 
         //Se invoca cuando se envia información de progreso
+        ////ACTUALIZAR
         private void procesoBackground_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             //Obtener reporte
@@ -214,70 +231,10 @@ namespace Reporte_de_IP
             lbCant.Text = lsConectados.Items.Count.ToString() + "     (Última actualización: " + DateTime.Now.ToLongTimeString() + ")";
         }
 
-        //Ejecutar el hilo
-        private void procesoBackground_DoWork(object sender, DoWorkEventArgs e)
+        private void Reloj_Tick(object sender, EventArgs e)
         {
-            //Obtener objeto
-            System.ComponentModel.BackgroundWorker worker;
-            worker = (System.ComponentModel.BackgroundWorker)sender;
-
-            //Llamar al método
-            Hilo h = new Hilo();
-            h.procedimientoHilo(worker, e);
-        }
-
-        //Se completa la carga de la página
-        private void web_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
-        {
-            switch (ControlWeb.accionWeb)
-            {
-                case ControlWeb.AccionWeb.Ninguna:
-                    return;
-                case ControlWeb.AccionWeb.LoginRouter:
-                    ControlWeb.loginRouter();
-                    return;
-                case ControlWeb.AccionWeb.MenuWireless:
-                    ControlWeb.menuWireless();
-                    return;
-                case ControlWeb.AccionWeb.MenuWirelessStatistics:
-                    ControlWeb.menuWirelessStatistics();
-                    return;
-                case ControlWeb.AccionWeb.LeerDatos:
-                    ControlWeb.obenerDatosWireless();
-                    return;
-                default:
-                    ControlWeb.accionWeb  = ControlWeb.AccionWeb.Ninguna;
-                    return;
-            }
-        }
-
-        //Herramienta para test, muestra los items devuelto por el WebControl
-        private void btActualizar_Click(object sender, EventArgs e)
-        {
-            //Navegar y mostrar
-            List<String> registrosMacControl = ControlWeb.obtenerListaMacs();
-
-            //Mostrar info al usuario
-            if (registrosMacControl != null)
-            {
-                String cadena = String.Empty;
-
-                foreach (String item in registrosMacControl)
-                    cadena += cadena == String.Empty ? item : Environment.NewLine + item;
-
-                MessageBox.Show("Items:" + Environment.NewLine + cadena);
-            }
-            else
-            {
-                MessageBox.Show("El control retornó Null");
-            }
-        }
-
-        //Habilita el botón de test btActualizar
-        private void picHabilitarBtActualizar_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
-                btActualizar.Visible = true;
+            //Procesar
+            _hilo.procedimientoHilo();
         }
     }
 }

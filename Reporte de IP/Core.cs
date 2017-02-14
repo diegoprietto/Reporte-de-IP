@@ -5,6 +5,7 @@ using System.Text;
 using Reporte_de_IP.Datos;
 using System.IO;
 using System.Diagnostics;
+using System.Configuration;
 
 namespace Reporte_de_IP
 {
@@ -14,11 +15,12 @@ namespace Reporte_de_IP
         //Datos
         public static List<EstadoActual> estadosActuales = new List<EstadoActual>();              //Estado de los dispositivos
         public static List<IPDispositivo> descripcionDispositivos = new List<IPDispositivo>();    //Contiene el nombre del dispositivo según la IP
+        public static Dictionary<String, String> descripcionDispositivosDiccionario = new Dictionary<String, String>();    //Contiene el nombre del dispositivo según la IP (Diccionario)
         public static List<RegistroAccion> listaAcciones = new List<RegistroAccion>();            //Acciones asignadas a los dispositivos
         public static DatosGenerales datosGenerales;                                              //Configuraciones
 
         //Constantes
-        public static string rutaArchivoConfig = "Reporte.config";
+        public static string rutaArchivoConfig = ConfigurationManager.AppSettings["rutaArchivoConfiguracion"];
 
 
         #region Metodos Públicos
@@ -48,7 +50,7 @@ namespace Reporte_de_IP
             }
             catch (Exception ex)
             {
-                ControlLog.registrarLog("Core.cs, cargarConfiguracion(): No se pudo leer el archivo de configuración, error: " + ex.Message);
+                ControlLog.EscribirLog(ControlLog.TipoGravedad.ERROR,"Core.cs","cargarConfiguracion","No se pudo leer el archivo de configuración: " + ex.Message);
                 //Error de lectura
                 return "Se produjo el error al intentar cargar el archivo: " + ex.Message;
             }
@@ -94,7 +96,7 @@ namespace Reporte_de_IP
             }
             catch (Exception ex)
             {
-                ControlLog.registrarLog("Core.cs, cargarConfiguracion(): Se produjo un error en la lectura del archivo de configuración, en el momento de lectura de las acciones programadas, error: " + ex.Message);
+                ControlLog.EscribirLog(ControlLog.TipoGravedad.ERROR,"Core.cs","cargarConfiguracion","Se produjo un error en la lectura del archivo de configuración, en el momento de lectura de las acciones programadas, error: " + ex.Message);
                 return "Se produjo un error al cargar las acciones: " + ex.Message;
             }
 
@@ -120,7 +122,7 @@ namespace Reporte_de_IP
             }
             catch (Exception ex)
             {
-                ControlLog.registrarLog("Core.cs, cargarNombresDispositivos(): Se produjo un error en la lectura del archivo de dispositivos, error: " + ex.Message);
+                ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING,"Core.cs","cargarNombresDispositivos","Se produjo un error en la lectura del archivo de dispositivos, error: " + ex.Message);
                 //Error de lectura
                 return "Se produjo el error al intentar cargar el archivo: " + ex.Message;
             }
@@ -142,6 +144,9 @@ namespace Reporte_de_IP
 
                         //Añadir a la lista
                         descripcionDispositivos.Add(nuevo);
+
+                        //Añadir al diccionario
+                        descripcionDispositivosDiccionario.Add(registroArr[0].Trim(), registroArr[1].Trim());
                     }
                 }
             }
@@ -176,7 +181,7 @@ namespace Reporte_de_IP
             }
             catch (Exception ex)
             {
-                ControlLog.registrarLog("Core.cs, guardarArchivoConfiguracion(): Se produjo un error en el guardado del archivo de configuración, error: " + ex.Message);
+                ControlLog.EscribirLog(ControlLog.TipoGravedad.ERROR, "Core.cs", "guardarArchivoConfiguracion", "Se produjo un error en el guardado del archivo de configuración, error: " + ex.Message);
                 return ex.Message;
             }
 
@@ -247,7 +252,7 @@ namespace Reporte_de_IP
                     }
                     catch (Exception ex)
                     {
-                        ControlLog.registrarLog("Core.cs, verificarCambioEstado(): Error al inicializar el proceso de la acción programada '" + accionActual.rutaExe + "' con parámetros '" + parametros + "' , error: " + ex.Message);
+                        ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING,"Core.cs","verificarCambioEstado","Error al inicializar el proceso de la acción programada '" + accionActual.rutaExe + "' con parámetros '" + parametros + "' , error: " + ex.Message);
                     }
                 }
 
