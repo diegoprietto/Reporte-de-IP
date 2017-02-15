@@ -33,9 +33,8 @@ namespace BackgroundWorker
         //Código que ejecuta el hilo
         public void procedimientoHilo()
         {
-            //Se crea el log
-            EstadoActual estadoActual = new EstadoActual();
-            ////QUITAR, se debe escribir disp en el ListBox
+            //Indica si ocurrió algún cambio de estado o no
+            bool huboCambios = false;
 
             //Obtener lista de conectados
             List<String> MacsConectadas = ObtenerListaMacMemoria();
@@ -45,27 +44,24 @@ namespace BackgroundWorker
 
             foreach (string macActual in MacsConectadas)
             {
-                //Añadir al reporte los dispositivos conectados
-                ////nuevaListaDispConectados.Add(Core.generarCadenaDispositivoConectado(macActual));
-                ////ACTUALIZAR, se debe actualizar el ListBox de conectados
-
                 //Quitar de la lista de macsEstadosActuales
                 if (macsEstadosActuales.Contains(macActual))
                     macsEstadosActuales.Remove(macActual);
 
                 //Verificar si ocurrio un cambio de estado, y realizar las acciones necesarias
-                Core.verificarCambioEstado(macActual, true);
+                if (Core.verificarCambioEstado(macActual, true)) huboCambios = true;
             }
 
             //Recorrer los dispositivos que aún estan en la lista, para determinar si se acaban de desconectar
             foreach (string macActual in macsEstadosActuales)
             {
                 //Verificar si ocurrio un cambio de estado, y realizar las acciones necesarias
-                Core.verificarCambioEstado(macActual, false);
+                if (Core.verificarCambioEstado(macActual, false)) huboCambios = true;
             }
 
             //Actualizar lista de dispositivos conectados para mostrar al usuario
-            actualizarListaConectados(MacsConectadas);
+            if (huboCambios)
+                actualizarListaConectados(MacsConectadas);
         }
 
         //Obtener de la memoria la lista de dispositivos conectados

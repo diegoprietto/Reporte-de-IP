@@ -227,8 +227,10 @@ namespace Reporte_de_IP
         }
 
         //Verifica cambios de estado y ejecuta las acciones si corresponde, actualiza el estado actual en caso de cambio
-        public static void verificarCambioEstado(string mac, bool estadoActual)
+        public static bool verificarCambioEstado(string mac, bool estadoActual)
         {
+            bool huboCambios = false;
+
             //Obtener estado anterior
             bool estadoAnterior = estadoActualConectado(mac);
             string parametros;
@@ -236,6 +238,8 @@ namespace Reporte_de_IP
             //Verificar si cambió el estado
             if (estadoActual != estadoAnterior)
             {
+                huboCambios = true;
+
                 //Buscar registro de acciones para este dispositivo
                 List<RegistroAccion> acciones = obtenerAccionesAsociadas(mac, estadoActual);
 
@@ -260,6 +264,7 @@ namespace Reporte_de_IP
                 actualizarEstadoDispositivo(mac, estadoActual);
             }
 
+            return huboCambios;
         }
 
         //Devuelve una lista de las Macs que estan registradas en la lista estadosActuales
