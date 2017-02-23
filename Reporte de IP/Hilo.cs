@@ -21,13 +21,17 @@ namespace BackgroundWorker
         private MemoriaCompartida _memoriaCompartida;
         private ListBox _lsConectados;
         private Label _lbCant;
+        private Label _lbFechaMemoria;
+        private Label _lbMsjError;
 
-        public Hilo(MemoriaCompartida memoriaCompartida, ListBox lsConectados, Label lbCant)
+        public Hilo(MemoriaCompartida memoriaCompartida, ListBox lsConectados, Label lbCant, Label lbFechaMemoria, Label lbMsjError)
         {
             //Obtener referencia del control de memoria
             _memoriaCompartida = memoriaCompartida;
             _lsConectados = lsConectados;
             _lbCant = lbCant;
+            _lbFechaMemoria = lbFechaMemoria;
+            _lbMsjError = lbMsjError;
         }
 
         //Código que ejecuta el hilo
@@ -35,9 +39,49 @@ namespace BackgroundWorker
         {
             //Indica si ocurrió algún cambio de estado o no
             bool huboCambios = false;
+            DateTime fechaHora = DateTime.Now;
+            String msjError = String.Empty;
 
             //Obtener lista de conectados
             List<String> MacsConectadas = ObtenerListaMacMemoria();
+
+            //Verificar si hay datos
+            if (MacsConectadas[0].Replace('\0', ' ').Trim() != String.Empty)
+            {
+                try
+                {
+                    //Obtener la fecha y hora de última actualización
+                    fechaHora = ObtenerFechaHoraMemoria(MacsConectadas);
+
+                    //Determinar si no hay un desfasaje muy grande
+                    TimeSpan ts = DateTime.Now - fechaHora;
+
+                    //Diferencia en minutos
+                    double difMintos = ts.TotalMinutes;
+                    if (difMintos > 1)
+                    {  //Si es mayor a un minuto advertir
+                        msjError = "Datos en memoria desactualizado";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //Error
+                    msjError = "Error al intentar leer la fecha";
+                    ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING, "Hilo.cs", "procedimientoHilo", msjError + ": " + ex.Message);
+
+                    fechaHora = DateTime.Now;
+                }
+            }
+            else
+            {
+                //Sin datos, no se inició la aplicación de Fuente u ocurrió un error
+                msjError = "No se encontraron datos en la memoria";
+                MacsConectadas.RemoveAt(0);
+                ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING, "Hilo.cs", "procedimientoHilo", msjError + ", no se inició la aplicación de Fuente u ocurrió un error en dicha aplicación.");
+            }
+
+            //Mostrar en la vista
+            actualizarHoraMemoria(fechaHora, msjError);
 
             //Obtener una lista de todos los dispositivos conectados de la lista EstadosActuales, para verificar cuales ya no vinieron en la lista de conectados
             List<String> macsEstadosActuales = Core.obtenerListaMacsEstadosActuales();
@@ -62,6 +106,25 @@ namespace BackgroundWorker
             //Actualizar lista de dispositivos conectados para mostrar al usuario
             if (huboCambios)
                 actualizarListaConectados(MacsConectadas);
+        }
+
+        //Obtiene el primer item de la lista de Macs, que corresponde a la fecha y hora de escritura
+        //Elimina este item de la lista y devuelve la fecha y hora como DateTime
+        private DateTime ObtenerFechaHoraMemoria(List<String> lista){
+            //Tener en cuenta que puede provocar error, envolver en Try Catch
+            String primerItem = lista[0];
+            lista.RemoveAt(0);
+
+            //Formato esperado: yyyyMMddHHmmss
+
+            DateTime fecha = new DateTime(int.Parse(primerItem.Substring(0, 4)),
+                int.Parse(primerItem.Substring(4, 2)),
+                int.Parse(primerItem.Substring(6, 2)),
+                int.Parse(primerItem.Substring(8, 2)),
+                int.Parse(primerItem.Substring(10, 2)),
+                int.Parse(primerItem.Substring(12, 2)));
+
+            return fecha;
         }
 
         //Obtener de la memoria la lista de dispositivos conectados
@@ -101,6 +164,20 @@ namespace BackgroundWorker
             }
             //Cantidad de conectados y última actualización
             _lbCant.Text = _lsConectados.Items.Count.ToString();
+        }
+
+        //Muestra la hora, si es <> null, de escritura del area de memoria y el mensaje de error indicado, si no esta Empty
+        private void actualizarHoraMemoria(DateTime fechaHora, String msjError){
+            if (msjError != String.Empty)
+            {
+                _lbFechaMemoria.Text = "-";
+                _lbMsjError.Text = msjError;
+            }
+            else
+            {
+                _lbFechaMemoria.Text = fechaHora.ToLongTimeString();
+                _lbMsjError.Text = String.Empty;
+            }
         }
 
         //Obtiene una lista de Macs y lo convierte en una lista de objetos MacDispositivos, que contiene la descripción

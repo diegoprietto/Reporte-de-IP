@@ -53,7 +53,7 @@ namespace Reporte_de_IP
             }
 
             //Instanciar Hilo, que contiene los métodos que ejecuta el Reloj
-            _hilo = new Hilo(_memoriaCompartida,lsConectados,lbCant);
+            _hilo = new Hilo(_memoriaCompartida,lsConectados,lbCant,lbFechaMemoria,lbMsjError);
 
             //Validar si hay errores
             if (resultado != String.Empty)
@@ -214,27 +214,16 @@ namespace Reporte_de_IP
             btDetener.Enabled = false;
         }
 
-        //Se invoca cuando se envia información de progreso
-        ////ACTUALIZAR
-        private void procesoBackground_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            //Obtener reporte
-            Hilo.EstadoActual estadoActual = (Hilo.EstadoActual)e.UserState;
-
-            //Mostrar los dispositivos conectados
-            lsConectados.Items.Clear();
-            foreach (string elemento in estadoActual.dispositivosConectados)
-            {
-                lsConectados.Items.Add(elemento);
-            }
-
-            lbCant.Text = lsConectados.Items.Count.ToString() + "     (Última actualización: " + DateTime.Now.ToLongTimeString() + ")";
-        }
-
         private void Reloj_Tick(object sender, EventArgs e)
         {
             //Procesar
             _hilo.procedimientoHilo();
+        }
+
+        //Activa/Desactiva las acciones programadas al detectar cambios de estado
+        private void chDesactivarAcciones_CheckedChanged(object sender, EventArgs e)
+        {
+            Core.accionesPausadas = !Core.accionesPausadas;
         }
     }
 }

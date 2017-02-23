@@ -22,6 +22,7 @@ namespace Reporte_de_IP
         //Constantes
         public static string rutaArchivoConfig = ConfigurationManager.AppSettings["rutaArchivoConfiguracion"];
 
+        public static bool accionesPausadas = false;    //Si es verdadero no se ejecutan las acciones programadas
 
         #region Metodos Públicos
 
@@ -240,23 +241,26 @@ namespace Reporte_de_IP
             {
                 huboCambios = true;
 
-                //Buscar registro de acciones para este dispositivo
-                List<RegistroAccion> acciones = obtenerAccionesAsociadas(mac, estadoActual);
-
-                //Por cada registro de acciones ejecutar el exe
-                foreach (RegistroAccion accionActual in acciones)
+                if (!accionesPausadas)
                 {
-                    //Generar parámetros
-                    parametros = generarParametroAccion(accionActual, estadoActual);
+                    //Buscar registro de acciones para este dispositivo
+                    List<RegistroAccion> acciones = obtenerAccionesAsociadas(mac, estadoActual);
 
-                    //Ejecutar
-                    try
+                    //Por cada registro de acciones ejecutar el exe
+                    foreach (RegistroAccion accionActual in acciones)
                     {
-                        Process.Start(accionActual.rutaExe, parametros);
-                    }
-                    catch (Exception ex)
-                    {
-                        ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING,"Core.cs","verificarCambioEstado","Error al inicializar el proceso de la acción programada '" + accionActual.rutaExe + "' con parámetros '" + parametros + "' , error: " + ex.Message);
+                        //Generar parámetros
+                        parametros = generarParametroAccion(accionActual, estadoActual);
+
+                        //Ejecutar
+                        try
+                        {
+                            Process.Start(accionActual.rutaExe, parametros);
+                        }
+                        catch (Exception ex)
+                        {
+                            ControlLog.EscribirLog(ControlLog.TipoGravedad.WARNING, "Core.cs", "verificarCambioEstado", "Error al inicializar el proceso de la acción programada '" + accionActual.rutaExe + "' con parámetros '" + parametros + "' , error: " + ex.Message);
+                        }
                     }
                 }
 

@@ -42,6 +42,10 @@
             this.lbCant = new System.Windows.Forms.Label();
             this.btGuardar = new System.Windows.Forms.Button();
             this.Reloj = new System.Windows.Forms.Timer(this.components);
+            this.label1 = new System.Windows.Forms.Label();
+            this.lbFechaMemoria = new System.Windows.Forms.Label();
+            this.lbMsjError = new System.Windows.Forms.Label();
+            this.chDesactivarAcciones = new System.Windows.Forms.CheckBox();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -49,9 +53,9 @@
             // 
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Controls.Add(this.txFrecuencia);
-            this.groupBox2.Location = new System.Drawing.Point(15, 18);
+            this.groupBox2.Location = new System.Drawing.Point(11, 3);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(134, 130);
+            this.groupBox2.Size = new System.Drawing.Size(134, 146);
             this.groupBox2.TabIndex = 4;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Opciones";
@@ -80,7 +84,7 @@
             // btIniciar
             // 
             this.btIniciar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.btIniciar.Location = new System.Drawing.Point(155, 25);
+            this.btIniciar.Location = new System.Drawing.Point(155, 3);
             this.btIniciar.Name = "btIniciar";
             this.btIniciar.Size = new System.Drawing.Size(189, 33);
             this.btIniciar.TabIndex = 0;
@@ -92,7 +96,7 @@
             // 
             this.btDetener.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
             this.btDetener.Enabled = false;
-            this.btDetener.Location = new System.Drawing.Point(155, 64);
+            this.btDetener.Location = new System.Drawing.Point(155, 36);
             this.btDetener.Name = "btDetener";
             this.btDetener.Size = new System.Drawing.Size(189, 33);
             this.btDetener.TabIndex = 1;
@@ -150,7 +154,7 @@
             // 
             // btGuardar
             // 
-            this.btGuardar.Location = new System.Drawing.Point(155, 351);
+            this.btGuardar.Location = new System.Drawing.Point(161, 406);
             this.btGuardar.Name = "btGuardar";
             this.btGuardar.Size = new System.Drawing.Size(188, 33);
             this.btGuardar.TabIndex = 8;
@@ -162,11 +166,59 @@
             // 
             this.Reloj.Tick += new System.EventHandler(this.Reloj_Tick);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(152, 351);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(68, 13);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "Fecha/Hora:";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // lbFechaMemoria
+            // 
+            this.lbFechaMemoria.AutoSize = true;
+            this.lbFechaMemoria.Location = new System.Drawing.Point(226, 351);
+            this.lbFechaMemoria.Name = "lbFechaMemoria";
+            this.lbFechaMemoria.Size = new System.Drawing.Size(10, 13);
+            this.lbFechaMemoria.TabIndex = 13;
+            this.lbFechaMemoria.Text = "-";
+            this.lbFechaMemoria.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // lbMsjError
+            // 
+            this.lbMsjError.AutoSize = true;
+            this.lbMsjError.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbMsjError.ForeColor = System.Drawing.Color.Red;
+            this.lbMsjError.Location = new System.Drawing.Point(12, 376);
+            this.lbMsjError.Name = "lbMsjError";
+            this.lbMsjError.Size = new System.Drawing.Size(27, 13);
+            this.lbMsjError.TabIndex = 14;
+            this.lbMsjError.Text = "     ";
+            this.lbMsjError.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // chDesactivarAcciones
+            // 
+            this.chDesactivarAcciones.Appearance = System.Windows.Forms.Appearance.Button;
+            this.chDesactivarAcciones.Location = new System.Drawing.Point(155, 77);
+            this.chDesactivarAcciones.Name = "chDesactivarAcciones";
+            this.chDesactivarAcciones.Size = new System.Drawing.Size(188, 33);
+            this.chDesactivarAcciones.TabIndex = 15;
+            this.chDesactivarAcciones.Text = "Pausar Acciones";
+            this.chDesactivarAcciones.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.chDesactivarAcciones.UseVisualStyleBackColor = true;
+            this.chDesactivarAcciones.CheckedChanged += new System.EventHandler(this.chDesactivarAcciones_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(361, 396);
+            this.ClientSize = new System.Drawing.Size(361, 446);
+            this.Controls.Add(this.chDesactivarAcciones);
+            this.Controls.Add(this.lbMsjError);
+            this.Controls.Add(this.lbFechaMemoria);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.btGuardar);
             this.Controls.Add(this.lbCant);
             this.Controls.Add(this.label6);
@@ -203,6 +255,10 @@
         private System.Windows.Forms.Label lbCant;
         private System.Windows.Forms.Button btGuardar;
         private System.Windows.Forms.Timer Reloj;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lbFechaMemoria;
+        private System.Windows.Forms.Label lbMsjError;
+        private System.Windows.Forms.CheckBox chDesactivarAcciones;
     }
 }
 
